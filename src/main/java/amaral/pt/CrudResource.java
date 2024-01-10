@@ -1,19 +1,44 @@
 package amaral.pt;
 
+import amaral.pt.model.entity.Resource;
+import amaral.pt.model.entity.ResourceId;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.Map;
+import java.util.UUID;
+
 @Path("/api")
 public class CrudResource {
 
-    String TEMP_API_KEY = "1";
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{resource}")
-    public Response Add(@PathParam("resource") String resource){
-        System.out.println(resource);
+    @Path("/{apiKey}/{resource}")
+    @Transactional
+    public Response Add(
+        @PathParam("apiKey") String apiKey,
+        @PathParam("resource") String resource,
+        String requestBody
+    ){
+        try {
+            UUID uuid = UUID.randomUUID();
+            Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
+            bodyMap.put("_id", uuid.toString());
+
+            ResourceId key = new ResourceId(apiKey, resource);
+            Resource topic = new Resource(key, bodyMap);
+
+            topic.persist();
+        } catch (JsonProcessingException e) {
+            System.out.println(e); //Todo add logger
+            return Response.serverError().build();
+        }
 
         return Response.ok(resource).build();
     }

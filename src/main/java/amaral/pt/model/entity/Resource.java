@@ -1,24 +1,23 @@
 package amaral.pt.model.entity;
-import jakarta.json.Json;
-import jakarta.persistence.Column;
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import amaral.pt.model.convertions.JsonToMapConverter;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.*;
 
 import java.util.Map;
 
 @Entity
 @Table(name="resource")
-public class Resource {
+public class Resource extends PanacheEntityBase {
     @EmbeddedId
     private ResourceId id;
-    @Column(columnDefinition = "jsonb", nullable = false)
-    private Json data;
+
+    @Convert(converter= JsonToMapConverter.class)
+    private Map<String, Object> data;
 
     public Resource() {
     }
 
-    public Resource(ResourceId id, Json data) {
+    public Resource(ResourceId id, Map<String, Object> data) {
         this.id = id;
         this.data = data;
     }
@@ -31,11 +30,11 @@ public class Resource {
         this.id = id;
     }
 
-    public Json getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 
-    public void setData(Json data) {
+    public void setData(Map<String, Object> data) {
         this.data = data;
     }
 }
