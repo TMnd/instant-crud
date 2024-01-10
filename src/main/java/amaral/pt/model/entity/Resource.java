@@ -9,25 +9,22 @@ import java.util.Map;
 @Table(name="resource")
 public class Resource extends PanacheEntityBase {
     @EmbeddedId
-    private ResourceId id;
+    private ResourceId resourceId;
+
+    @Column(name="data_id")
+    private String dataId;
 
     @Convert(converter= JsonToMapConverter.class)
     private Map<String, Object> data;
 
-    public Resource() {
+    public Resource() {}
+
+    public ResourceId getResourceId() {
+        return resourceId;
     }
 
-    public Resource(ResourceId id, Map<String, Object> data) {
-        this.id = id;
-        this.data = data;
-    }
-
-    public ResourceId getId() {
-        return id;
-    }
-
-    public void setId(ResourceId id) {
-        this.id = id;
+    public void setResourceId(ResourceId resourceId) {
+        this.resourceId = resourceId;
     }
 
     public Map<String, Object> getData() {
@@ -36,5 +33,13 @@ public class Resource extends PanacheEntityBase {
 
     public void setData(Map<String, Object> data) {
         this.data = data;
+    }
+
+    public String getDataId() {
+        return dataId;
+    }
+
+    public void setDataId(String dataId) {
+        this.dataId = dataId;
     }
 }

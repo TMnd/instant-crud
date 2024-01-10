@@ -29,10 +29,12 @@ public class CrudResource {
         try {
             UUID uuid = UUID.randomUUID();
             Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
-            bodyMap.put("_id", uuid.toString());
 
-            ResourceId key = new ResourceId(apiKey, resource);
-            Resource topic = new Resource(key, bodyMap);
+            ResourceId resourceId = new ResourceId(apiKey, resource);
+            Resource topic = new Resource();
+            topic.setResourceId(resourceId);
+            topic.setData(bodyMap);
+            topic.setDataId(uuid.toString());
 
             topic.persist();
         } catch (JsonProcessingException e) {
@@ -52,8 +54,10 @@ public class CrudResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{resource}/{id}")
+    @Path("/{apiKey}/{resource}/{id}")
+    @Transactional
     public Response GetResource(
+        @PathParam("apiKey") String apiKey,
         @PathParam("resource") String resource,
         @PathParam("id") String id
     ) {
