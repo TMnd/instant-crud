@@ -1,30 +1,16 @@
 package amaral.pt;
 
-import amaral.pt.model.entity.Resource;
-import amaral.pt.model.entity.ResourceId;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
 @Path("/api")
 public class CrudResource {
 
     @Inject
-    EntityManager entityManager;
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    CrudService crudService;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -35,31 +21,24 @@ public class CrudResource {
         @PathParam("resource") String resource,
         String requestBody
     ){
-        try {
-            String uuid = UUID.randomUUID().toString();
 
-            Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
-            bodyMap.put("_id", uuid);
+        boolean wasInserted = crudService.AddResource(apiKey, resource, requestBody);
 
-            ResourceId resourceId = new ResourceId(apiKey, resource);
-            Resource topic = new Resource();
-            topic.setResourceId(resourceId);
-            topic.setData(bodyMap);
-            topic.setDataId(uuid);
-
-            topic.persist();
-        } catch (JsonProcessingException e) {
-            System.out.println(e); //Todo add logger
-            return Response.serverError().build();
+        if(wasInserted) {
+            return Response.ok(resource).build();
         }
 
-        return Response.ok(resource).build();
+        return Response.serverError().build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{resource}")
-    public Response GetAll(@PathParam("resource") String resource) {
+    @Path("/{apiKey}/{resource}")
+    public Response GetAll(
+        @PathParam("apiKey") String apiKey,
+        @PathParam("resource") String resource
+    ) {
+
         return Response.ok("all - " + resource).build();
     }
 
@@ -68,17 +47,10 @@ public class CrudResource {
     @Path("/{apiKey}/{resource}/{dataId}")
     @Transactional
     public Response GetResource(
-        @PathParam("apiKey") String apiKey,
         @PathParam("resource") String resource,
         @PathParam("dataId") String id
     ) {
-        String sqlQuery = "SELECT data FROM resource WHERE data_id = :dataId and resource = :resource";
-
-        Query query = entityManager.createNativeQuery(sqlQuery);
-        query.setParameter("dataId", id);
-        query.setParameter("resource", resource);
-
-        String result = String.valueOf(query.getSingleResult());
+        String result = crudService.getSingleResource(id, resource);
 
         if(result != null) {
             return Response.ok(result).build();

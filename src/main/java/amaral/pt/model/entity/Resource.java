@@ -1,5 +1,6 @@
 package amaral.pt.model.entity;
 import amaral.pt.model.convertions.JsonToMapConverter;
+import io.quarkus.hibernate.orm.panache.PanacheEntity;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
@@ -8,23 +9,31 @@ import java.util.Map;
 @Entity
 @Table(name="resource")
 public class Resource extends PanacheEntityBase {
-    @EmbeddedId
-    private ResourceId resourceId;
 
+    @Id
     @Column(name="data_id")
     private String dataId;
-
+    private String apikey;
+    private String resource;
     @Convert(converter= JsonToMapConverter.class)
     private Map<String, Object> data;
 
     public Resource() {}
 
-    public ResourceId getResourceId() {
-        return resourceId;
+    public String getApikey() {
+        return apikey;
     }
 
-    public void setResourceId(ResourceId resourceId) {
-        this.resourceId = resourceId;
+    public void setApikey(String apikey) {
+        this.apikey = apikey;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
     }
 
     public Map<String, Object> getData() {
