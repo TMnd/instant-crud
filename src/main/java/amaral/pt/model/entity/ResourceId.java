@@ -8,23 +8,23 @@ import java.io.Serializable;
 @Embeddable
 public class ResourceId implements Serializable {
 
-    private String id;
+    private String apikey;
     private String resource;
 
     public ResourceId() {
     }
 
-    public ResourceId(String id, String resource) {
-        this.id = id;
+    public ResourceId(String apikey, String resource) {
+        this.apikey = apikey;
         this.resource = resource;
     }
 
     public String getId() {
-        return id;
+        return apikey;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setId(String apikey) {
+        this.apikey = apikey;
     }
 
     public String getResource() {

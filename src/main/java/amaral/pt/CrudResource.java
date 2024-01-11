@@ -4,16 +4,25 @@ import amaral.pt.model.entity.Resource;
 import amaral.pt.model.entity.ResourceId;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
+import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Path("/api")
 public class CrudResource {
+
+    @Inject
+    EntityManager entityManager;
 
     private final ObjectMapper mapper = new ObjectMapper();
 
@@ -27,14 +36,16 @@ public class CrudResource {
         String requestBody
     ){
         try {
-            UUID uuid = UUID.randomUUID();
+            String uuid = UUID.randomUUID().toString();
+
             Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
+            bodyMap.put("_id", uuid);
 
             ResourceId resourceId = new ResourceId(apiKey, resource);
             Resource topic = new Resource();
             topic.setResourceId(resourceId);
             topic.setData(bodyMap);
-            topic.setDataId(uuid.toString());
+            topic.setDataId(uuid);
 
             topic.persist();
         } catch (JsonProcessingException e) {
@@ -54,14 +65,26 @@ public class CrudResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}/{id}")
+    @Path("/{apiKey}/{resource}/{dataId}")
     @Transactional
     public Response GetResource(
         @PathParam("apiKey") String apiKey,
         @PathParam("resource") String resource,
-        @PathParam("id") String id
+        @PathParam("dataId") String id
     ) {
-        return Response.ok(resource + " - " + id).build();
+        String sqlQuery = "SELECT data FROM resource WHERE data_id = :dataId and resource = :resource";
+
+        Query query = entityManager.createNativeQuery(sqlQuery);
+        query.setParameter("dataId", id);
+        query.setParameter("resource", resource);
+
+        String result = String.valueOf(query.getSingleResult());
+
+        if(result != null) {
+            return Response.ok(result).build();
+        }
+
+        return Response.noContent().build();
     }
 
     @PUT
