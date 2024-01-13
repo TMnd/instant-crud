@@ -20,6 +20,13 @@ public class Resource extends PanacheEntityBase {
 
     public Resource() {}
 
+    public Resource(String dataId, String apikey, String resource, Map<String, Object> data) {
+        this.dataId = dataId;
+        this.apikey = apikey;
+        this.resource = resource;
+        this.data = data;
+    }
+
     public String getApikey() {
         return apikey;
     }

@@ -1,17 +1,57 @@
 package amaral.pt;
 
+import amaral.pt.model.entity.Resource;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+
+import java.util.Map;
+import java.util.UUID;
 
 @Path("/api")
 public class CrudResource {
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @Inject
+    @RestClient
     CrudService crudService;
 
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{apiKey}/{resource}")
+    public Response Add(
+        @PathParam("apiKey") String apiKey,
+        @PathParam("resource") String resource,
+        String requestBody
+    ){
+
+        try {
+            String uuid = UUID.randomUUID().toString();
+
+            Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
+            bodyMap.put("_id", uuid);
+
+            Resource resourceObj = new Resource();
+            resourceObj.setDataId(uuid);
+            resourceObj.setApikey(apiKey);
+            resourceObj.setResource(resource);
+            resourceObj.setData(bodyMap);
+
+            return crudService.addResource(resourceObj);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
+/*
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{resource}")
@@ -78,5 +118,5 @@ public class CrudResource {
     ) {
         return Response.ok(resource + " - " + id).build();
     }
-
+*/
 }
