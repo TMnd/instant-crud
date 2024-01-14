@@ -2,6 +2,7 @@ package amaral.pt;
 
 import amaral.pt.model.entity.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
@@ -60,5 +61,18 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
 
     public void deleteResource(String id, String resource) {
         delete("dataId = ?1 and resource = ?2", id, resource);
+    }
+
+    public String updateResource(String id, String resource, String data) throws JsonProcessingException {
+        Resource resourceObj = findById(id);
+
+        TypeReference<Map<String, Object>> mapType = new TypeReference<Map<String, Object>>() {};
+        Map<String, Object> dataMap = mapper.readValue(data, mapType);
+
+        resourceObj.setData(dataMap);
+
+        persist(resourceObj);
+
+        return id;
     }
 }

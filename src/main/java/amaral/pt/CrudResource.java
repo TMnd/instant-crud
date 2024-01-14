@@ -1,7 +1,6 @@
 package amaral.pt;
 
-import amaral.pt.model.entity.Resource;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -14,7 +13,6 @@ import java.util.Map;
 
 @Path("/api")
 public class CrudResource {
-    private final ObjectMapper mapper = new ObjectMapper();
 
     @Inject
     CrudService crudService;
@@ -56,13 +54,16 @@ public class CrudResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{resource}/{id}")
-    public Response updateResource(
-            @PathParam("resource") String resource,
-            @PathParam("id") String id
-    ) {
-
-        return Response.ok(resource + " - " + id).build();
+    @Path("/{apiKey}/{resource}/{id}")
+    @Transactional
+    public Response updateResource(@PathParam("resource") String resource, @PathParam("id") String id, String requestBody) {
+        try {
+            String updatedResourceId = this.crudService.updateResource(id, resource, requestBody);
+            return Response.ok(updatedResourceId).build();
+        } catch (JsonProcessingException e) {
+            System.out.println(e); //log error
+            return Response.serverError().build();
+        }
     }
 
     @DELETE
