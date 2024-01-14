@@ -19,59 +19,61 @@ public class CrudResource {
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}")
+    @Path("/{apiKey}/{topic}")
     @Transactional
-    public Response add(@PathParam("apiKey") String apiKey, @PathParam("resource") String resource, String requestBody){
-        boolean wasInserted = crudService.AddResource(apiKey, resource, requestBody);
+    public Response add(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, String requestBody){
+        boolean wasInserted = crudService.AddResource(apiKey, topic, requestBody);
 
         return (wasInserted) ?
-                Response.ok(resource).build() :
+                Response.ok(topic).build() :
                 Response.serverError().build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}")
-    public Response getAll(@PathParam("apiKey") String apiKey, @PathParam("resource") String resource) {
-        List<Map<String, Object>> allResource = crudService.getAllResource(apiKey, resource);
+    @Path("/{apiKey}/{topic}")
+    public Response getAll(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic) {
+        List<Map<String, Object>> resources = crudService.getAllResource(apiKey, topic);
 
-        return CollectionUtils.isNotEmpty(allResource) ?
-                Response.ok(allResource).build() :
+        return CollectionUtils.isNotEmpty(resources) ?
+                Response.ok(resources).build() :
                 Response.noContent().build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}/{dataId}")
+    @Path("/{apiKey}/{topic}/{dataId}")
     @Transactional
-    public Response getResource(@PathParam("resource") String resource, @PathParam("dataId") String id) {
-        Map<String, Object> singleResource = crudService.getSingleResource(id, resource);
+    public Response getResource(@PathParam("topic") String topic, @PathParam("dataId") String id) {
+        Map<String, Object> resource = crudService.getSingleResource(id, topic);
 
-        return (singleResource != null) ?
-                Response.ok(singleResource).build() :
+        return (resource != null) ?
+                Response.ok(resource).build() :
                 Response.noContent().build();
     }
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}/{id}")
+    @Path("/{apiKey}/{topic}/{id}")
     @Transactional
-    public Response updateResource(@PathParam("resource") String resource, @PathParam("id") String id, String requestBody) {
+    public Response updateResource(@PathParam("topic") String topic, @PathParam("id") String id, String requestBody) {
         try {
-            String updatedResourceId = this.crudService.updateResource(id, resource, requestBody);
+            String updatedResourceId = this.crudService.updateResource(id, topic, requestBody);
+
             return Response.ok(updatedResourceId).build();
         } catch (JsonProcessingException e) {
             System.out.println(e); //log error
+
             return Response.serverError().build();
         }
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{resource}/{id}")
+    @Path("/{apiKey}/{topic}/{id}")
     @Transactional
-    public Response deleteResource(@PathParam("resource") String resource, @PathParam("id") String id) {
-        crudService.deleteResource(id, resource);
+    public Response deleteResource(@PathParam("topic") String topic, @PathParam("id") String id) {
+        crudService.deleteResource(id, topic);
 
         return Response.ok().build();
     }

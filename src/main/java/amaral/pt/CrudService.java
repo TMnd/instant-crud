@@ -45,33 +45,35 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
         return true;
     }
 
-    public Map<String, Object> getSingleResource(String data_id, String resource){
-        Resource resourceEntity = find("dataId = ?1 and resource = ?2", data_id, resource).firstResult();
+    public Map<String, Object> getSingleResource(String data_id, String topic){
+        Resource resource = find("dataId = ?1 and topic = ?2", data_id, topic).firstResult();
 
-        return resourceEntity.getData();
+        return resource.getData();
     }
 
-    public List<Map<String, Object>> getAllResource(String apiKey, String resource){
-        List<Resource> resources = find("apikey = ?1 and resource = ?2", apiKey, resource).list();
+    public List<Map<String, Object>> getAllResource(String apiKey, String topic){
+        List<Resource> resources = find("apikey = ?1 and topic = ?2", apiKey, topic).list();
 
         return resources.stream()
                 .map(Resource::getData)
                 .collect(Collectors.toList());
     }
 
-    public void deleteResource(String id, String resource) {
-        delete("dataId = ?1 and resource = ?2", id, resource);
+    public void deleteResource(String id, String topic) {
+        delete("dataId = ?1 and topic = ?2", id, topic);
     }
 
-    public String updateResource(String id, String resource, String data) throws JsonProcessingException {
-        Resource resourceObj = findById(id);
+    public String updateResource(String id, String topic, String data) throws JsonProcessingException {
+        Resource resource = find("dataId = ?1 and topic = ?2", id, topic).firstResult();
 
         TypeReference<Map<String, Object>> mapType = new TypeReference<Map<String, Object>>() {};
         Map<String, Object> dataMap = mapper.readValue(data, mapType);
 
-        resourceObj.setData(dataMap);
+        dataMap.put("_id", id);
 
-        persist(resourceObj);
+        resource.setData(dataMap);
+
+        persist(resource);
 
         return id;
     }
