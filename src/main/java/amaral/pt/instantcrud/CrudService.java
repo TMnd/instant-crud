@@ -1,15 +1,13 @@
-package amaral.pt;
+package amaral.pt.instantcrud;
 
-import amaral.pt.model.entity.Resource;
+import amaral.pt.apimgr.ApiService;
+import amaral.pt.instantcrud.model.entity.Resource;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
@@ -22,18 +20,25 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    @Inject
+    ApiService apiService;
+
     @Transactional
-    public boolean AddResource(String apiKey, String resource, String requestBody) {
+    public boolean AddResource(String apiKey, String resource, String requestBody, String origin) {
+
+        boolean authorize = this.apiService.authorize(apiKey, origin);
+
         try {
             String uuid = UUID.randomUUID().toString();
 
-            Map<String, Object> bodyMap = mapper.readValue(requestBody, Map.class);
+            TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
+            Map<String, Object> bodyMap = mapper.readValue(requestBody, mapType);
             bodyMap.put("_id", uuid);
 
             Resource topic = new Resource();
             topic.setDataId(uuid);
             topic.setApikey(apiKey);
-            topic.setResource(resource);
+            topic.setTopic(resource);
             topic.setData(bodyMap);
 
             topic.persist();
@@ -66,7 +71,7 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
     public String updateResource(String id, String topic, String data) throws JsonProcessingException {
         Resource resource = find("dataId = ?1 and topic = ?2", id, topic).firstResult();
 
-        TypeReference<Map<String, Object>> mapType = new TypeReference<Map<String, Object>>() {};
+        TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
         Map<String, Object> dataMap = mapper.readValue(data, mapType);
 
         dataMap.put("_id", id);

@@ -1,28 +1,33 @@
-package amaral.pt;
+package amaral.pt.instantcrud;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.*;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
 
-@Path("/api")
+@Path("/crud")
 public class CrudResource {
 
     @Inject
     CrudService crudService;
+
+    @Inject
+    UriInfo uriInfo;
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{topic}")
     @Transactional
     public Response add(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, String requestBody){
-        boolean wasInserted = crudService.AddResource(apiKey, topic, requestBody);
+
+        String origin = uriInfo.getBaseUri().toString();
+
+        boolean wasInserted = crudService.AddResource(apiKey, topic, requestBody, origin);
 
         return (wasInserted) ?
                 Response.ok(topic).build() :

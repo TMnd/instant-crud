@@ -1,7 +1,6 @@
-package amaral.pt.model.entity;
-import amaral.pt.model.convertions.JsonToMapConverter;
+package amaral.pt.instantcrud.model.entity;
+import amaral.pt.instantcrud.model.convertions.JsonToMapConverter;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import io.quarkus.panache.common.impl.GenerateBridge;
 import jakarta.persistence.*;
 
 import java.util.Map;
@@ -14,7 +13,7 @@ public class Resource extends PanacheEntityBase{
     @Column(name="data_id")
     private String dataId;
     private String apikey;
-    private String resource;
+    private String topic;
     @Convert(converter= JsonToMapConverter.class)
     private Map<String, Object> data;
 
@@ -28,12 +27,12 @@ public class Resource extends PanacheEntityBase{
         this.apikey = apikey;
     }
 
-    public String getResource() {
-        return resource;
+    public String getTopic() {
+        return topic;
     }
 
-    public void setResource(String resource) {
-        this.resource = resource;
+    public void setTopic(String topic) {
+        this.topic = topic;
     }
 
     public Map<String, Object> getData() {
