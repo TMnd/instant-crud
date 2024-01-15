@@ -38,7 +38,10 @@ public class CrudResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{topic}")
     public Response getAll(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic) {
-        List<Map<String, Object>> resources = crudService.getAllResource(apiKey, topic);
+
+        String origin = uriInfo.getBaseUri().toString();
+
+        List<Map<String, Object>> resources = crudService.getAllResource(apiKey, topic, origin);
 
         return CollectionUtils.isNotEmpty(resources) ?
                 Response.ok(resources).build() :
@@ -49,8 +52,11 @@ public class CrudResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{topic}/{dataId}")
     @Transactional
-    public Response getResource(@PathParam("topic") String topic, @PathParam("dataId") String id) {
-        Map<String, Object> resource = crudService.getSingleResource(id, topic);
+    public Response getResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("dataId") String id) {
+
+        String origin = uriInfo.getBaseUri().toString();
+
+        Map<String, Object> resource = crudService.getSingleResource(apiKey, id, topic, origin);
 
         return (resource != null) ?
                 Response.ok(resource).build() :
@@ -61,14 +67,18 @@ public class CrudResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{topic}/{id}")
     @Transactional
-    public Response updateResource(@PathParam("topic") String topic, @PathParam("id") String id, String requestBody) {
+    public Response updateResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("id") String id, String requestBody) {
         try {
-            String updatedResourceId = this.crudService.updateResource(id, topic, requestBody);
 
-            return Response.ok(updatedResourceId).build();
+            String origin = uriInfo.getBaseUri().toString();
+
+            String updatedResourceId = this.crudService.updateResource(apiKey, id, topic, requestBody, origin);
+
+            return (updatedResourceId != null) ?
+                    Response.ok(updatedResourceId).build():
+                    Response.serverError().build();
         } catch (JsonProcessingException e) {
             System.out.println(e); //log error
-
             return Response.serverError().build();
         }
     }
@@ -77,10 +87,15 @@ public class CrudResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/{apiKey}/{topic}/{id}")
     @Transactional
-    public Response deleteResource(@PathParam("topic") String topic, @PathParam("id") String id) {
-        crudService.deleteResource(id, topic);
+    public Response deleteResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("id") String id) {
 
-        return Response.ok().build();
+        String origin = uriInfo.getBaseUri().toString();
+
+        Long result = crudService.deleteResource(apiKey, id, topic, origin);
+
+        return (result>0L) ?
+            Response.ok().build():
+            Response.serverError().build();
     }
 
 }
