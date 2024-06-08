@@ -10,26 +10,33 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.BooleanUtils;
+import org.jboss.logging.Logger;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
 
 @ApplicationScoped
 public class CrudService implements PanacheRepositoryBase<Resource, String> {
 
+    private static final Logger LOG = Logger.getLogger(CrudService.class);
     private final ObjectMapper mapper = new ObjectMapper();
+
+    private static final String  DATA_TOPIC_QUERY  = "dataId = ?1 and topic = ?2";
 
     @Inject
     ApiService apiService;
 
     private Boolean isAuthorized(String apiKey, String origin) {
-        return this.apiService.authorize(apiKey, origin);
+	    try {
+		    return this.apiService.authorize(apiKey, origin);
+	    } catch (NoSuchAlgorithmException e) {
+            LOG.error(e.getMessage());
+	    }
+        return false;
     }
 
     @Transactional
-    public boolean AddResource(String apiKey, String resource, String requestBody, String origin) {
+    public boolean addResource(String apiKey, String resource, String requestBody, String origin) {
 
         Boolean authorize = isAuthorized(apiKey, origin);
 
@@ -52,22 +59,22 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
 
             topic.persist();
         } catch (JsonProcessingException e) {
-            System.out.println(e); //Todo add logger
+            LOG.error(e.getMessage());
             return false;
         }
 
         return true;
     }
 
-    public Map<String, Object> getSingleResource(String apikey, String data_id, String topic, String origin){
+    public Map<String, Object> getSingleResource(String apikey, String dataId, String topic, String origin){
 
         Boolean authorize = isAuthorized(apikey, origin);
 
         if(BooleanUtils.isFalse(authorize)) {
-            return null;
+            return new HashMap<>();
         }
 
-        Resource resource = find("dataId = ?1 and topic = ?2", data_id, topic).firstResult();
+        Resource resource = find(DATA_TOPIC_QUERY,  dataId, topic).firstResult();
 
         return resource.getData();
     }
@@ -77,14 +84,14 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
         Boolean authorize = isAuthorized(apiKey, origin);
 
         if(BooleanUtils.isFalse(authorize)) {
-            return null;
+            return new ArrayList<>();
         }
 
         List<Resource> resources = find("apikey = ?1 and topic = ?2", apiKey, topic).list();
 
         return resources.stream()
                 .map(Resource::getData)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public Long deleteResource(String apiKey, String id, String topic, String origin) {
@@ -95,7 +102,7 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
             return 0L;
         }
 
-        delete("dataId = ?1 and topic = ?2", id, topic);
+        delete(DATA_TOPIC_QUERY, id, topic);
         return 1L;
     }
 
@@ -107,7 +114,7 @@ public class CrudService implements PanacheRepositoryBase<Resource, String> {
             return null;
         }
 
-        Resource resource = find("dataId = ?1 and topic = ?2", id, topic).firstResult();
+        Resource resource = find(DATA_TOPIC_QUERY, id, topic).firstResult();
 
         TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
         Map<String, Object> dataMap = mapper.readValue(data, mapType);

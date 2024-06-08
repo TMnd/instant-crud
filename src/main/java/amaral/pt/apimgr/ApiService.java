@@ -1,5 +1,6 @@
 package amaral.pt.apimgr;
 
+import amaral.pt.apimgr.model.entity.Api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,36 +18,33 @@ public class ApiService {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private String generateApiKey(String input) throws NoSuchAlgorithmException {
-        MessageDigest digest = MessageDigest.getInstance("MD5");
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
         byte[] hash = digest.digest(input.getBytes());
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    public String createApiKey(String requestBody) {
-        String api = "";
+    private void saveGeneratedApi(String apiKey, String origin) {
+        Api api = new Api();
+        api.setApiKey(apiKey);
+        api.setOrigin(origin);
 
-        try {
-            TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
-            Map<String, Object> bodyMap = mapper.readValue(requestBody, mapType);
-            String origin = String.valueOf(bodyMap.get("origin"));
-
-            return generateApiKey(origin);
-
-        } catch (NoSuchAlgorithmException | JsonProcessingException e) {
-            System.out.println(e); //todo
-        }
-
-        return api;
+        api.persist();
     }
 
-    public boolean authorize(String apikey, String origin) {
-        String challengeKey = null;
-        try {
-            challengeKey = generateApiKey(origin);
-        } catch (NoSuchAlgorithmException e) {
-            System.out.println(e); //todo
-            return false;
-        }
+    public String createApiKey(String requestBody) throws JsonProcessingException, NoSuchAlgorithmException {
+        TypeReference<Map<String, Object>> mapType = new TypeReference<>() {};
+        Map<String, Object> bodyMap = mapper.readValue(requestBody, mapType);
+
+        String origin = String.valueOf(bodyMap.get("origin"));
+        String apiKey = generateApiKey(origin);
+
+        saveGeneratedApi(apiKey, origin);
+
+        return apiKey;
+    }
+
+    public boolean authorize(String apikey, String origin) throws NoSuchAlgorithmException {
+        String challengeKey = generateApiKey(origin);
         return StringUtils.equals(challengeKey, apikey);
     }
 }

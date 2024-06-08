@@ -1,5 +1,7 @@
 package amaral.pt.instantcrud;
 
+import io.quarkus.vertx.http.runtime.CurrentVertxRequest;
+import org.jboss.logging.Logger;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -13,21 +15,27 @@ import java.util.Map;
 @Path("/crud")
 public class CrudResource {
 
+    private static final Logger LOG = Logger.getLogger(CrudResource.class);
+
     @Inject
     CrudService crudService;
 
     @Inject
     UriInfo uriInfo;
 
+    @Inject
+    CurrentVertxRequest request;
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{topic}")
+    @Path("/{topic}")
     @Transactional
-    public Response add(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, String requestBody){
+    public Response add(@PathParam("topic") String topic, String requestBody){
 
-        String origin = uriInfo.getBaseUri().toString();
+        String origin = String.valueOf(uriInfo.getBaseUri());
+        String apiKey = request.getCurrent().request().getHeader("x-api-key");
 
-        boolean wasInserted = crudService.AddResource(apiKey, topic, requestBody, origin);
+        boolean wasInserted = crudService.addResource(apiKey, topic, requestBody, origin);
 
         return (wasInserted) ?
                 Response.ok(topic).build() :
@@ -36,10 +44,11 @@ public class CrudResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{topic}")
-    public Response getAll(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic) {
+    @Path("/{topic}")
+    public Response getAll(@PathParam("topic") String topic) {
 
         String origin = uriInfo.getBaseUri().toString();
+        String apiKey = request.getCurrent().request().getHeader("x-api-key");
 
         List<Map<String, Object>> resources = crudService.getAllResource(apiKey, topic, origin);
 
@@ -50,11 +59,12 @@ public class CrudResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{topic}/{dataId}")
+    @Path("/{topic}/{dataId}")
     @Transactional
-    public Response getResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("dataId") String id) {
+    public Response getResource(@PathParam("topic") String topic, @PathParam("dataId") String id) {
 
         String origin = uriInfo.getBaseUri().toString();
+        String apiKey = request.getCurrent().request().getHeader("x-api-key");
 
         Map<String, Object> resource = crudService.getSingleResource(apiKey, id, topic, origin);
 
@@ -65,32 +75,32 @@ public class CrudResource {
 
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{topic}/{id}")
+    @Path("/{topic}/{dataId}")
     @Transactional
-    public Response updateResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("id") String id, String requestBody) {
+    public Response updateResource(@PathParam("topic") String topic, @PathParam("dataId") String dataId, String requestBody) {
         try {
 
             String origin = uriInfo.getBaseUri().toString();
-
-            String updatedResourceId = this.crudService.updateResource(apiKey, id, topic, requestBody, origin);
+            String apiKey = request.getCurrent().request().getHeader("x-api-key");
+            String updatedResourceId = this.crudService.updateResource(apiKey, dataId, topic, requestBody, origin);
 
             return (updatedResourceId != null) ?
                     Response.ok(updatedResourceId).build():
                     Response.serverError().build();
         } catch (JsonProcessingException e) {
-            System.out.println(e); //log error
+            LOG.error(e.getMessage());
             return Response.serverError().build();
         }
     }
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/{apiKey}/{topic}/{id}")
+    @Path("/{topic}/{dataId}")
     @Transactional
-    public Response deleteResource(@PathParam("apiKey") String apiKey, @PathParam("topic") String topic, @PathParam("id") String id) {
+    public Response deleteResource(@PathParam("topic") String topic, @PathParam("dataId") String id) {
 
         String origin = uriInfo.getBaseUri().toString();
-
+        String apiKey = request.getCurrent().request().getHeader("x-api-key");
         Long result = crudService.deleteResource(apiKey, id, topic, origin);
 
         return (result>0L) ?

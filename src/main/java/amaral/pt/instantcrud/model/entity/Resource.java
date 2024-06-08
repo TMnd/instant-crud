@@ -1,4 +1,5 @@
 package amaral.pt.instantcrud.model.entity;
+
 import amaral.pt.instantcrud.model.convertions.JsonToMapConverter;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
@@ -17,7 +18,9 @@ public class Resource extends PanacheEntityBase{
     @Convert(converter= JsonToMapConverter.class)
     private Map<String, Object> data;
 
-    public Resource() {}
+    public Resource() {
+        // Hibernate default constructor
+    }
 
     public String getApikey() {
         return apikey;
