@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
@@ -46,5 +47,9 @@ public class ApiService {
     public boolean authorize(String apikey, String origin) throws NoSuchAlgorithmException {
         String challengeKey = generateApiKey(origin);
         return StringUtils.equals(challengeKey, apikey);
+    }
+
+    public List<Api> getTokenList() {
+        return Api.listAll();
     }
 }
