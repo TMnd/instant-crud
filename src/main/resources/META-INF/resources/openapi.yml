@@ -1,0 +1,123 @@
+openapi: 3.0.0
+info:
+  title: Instant-crud documentation
+  description: My version of the instant crud. Idea based of https://crudcrud.com/. <br> This is intended to be a fast and easy way to have a crud service for web development.
+  version: 1.0.0
+paths:
+  /doc:
+    get:
+      summary: Endpoint to this documentation
+      tags:
+        - Documentation
+      description: This returns a basic HTML page to this openapi file.
+      responses:
+        '200':
+          description: Documentation as a HTML page.
+  /api:
+    get:
+      summary: Returns a list of tokens.
+      tags:
+        - Api
+      description: Returns a list of token with the corresponding origin.
+      responses:
+        '200':    # status code
+          description: Successful list of tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    apikey:
+                      type: string
+                    origin:
+                      type: string
+        '404':
+          description: Empty list of tokens
+    post:
+      summary: Create a api token.
+      tags:
+        - Api
+      description: Create a api token base of a origin to use with the instant token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                origin:
+                  type: string
+      responses:
+        '200':
+          description: Generated token based of the origin
+  /crud/{topic}:
+    post:
+      summary: Save data to a topic.
+      tags:
+        - Instant-crud
+      description: Save data to a topic related to a api key and to the origin value.
+      parameters:
+        - in: header
+          name: x-api-key
+          schema:
+            type: string
+      responses:
+        '200':
+          description: The data used to the topic in JSON format.
+        '500':
+          description: Returns a error that the data wasn't added.
+    get:
+      summary: Get all data from the a specific topic.
+      tags:
+        - Instant-crud
+      description: Get all data from the a specific topic.
+      responses:
+        '200':
+          description: Array with json object with the diferent data.
+        '404':
+          description: Empty array.
+  /{topic}/{dataId}:
+    get:
+      summary: Returns a list of users.
+      tags:
+        - Instant-crud
+      description: Optional extended description in CommonMark or HTML.
+      responses:
+        '200': # status code
+          description: A JSON array of user names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+    put:
+      summary: Returns a list of users.
+      tags:
+        - Instant-crud
+      description: Optional extended description in CommonMark or HTML.
+      responses:
+        '200': # status code
+          description: A JSON array of user names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+    delete:
+      summary: Returns a list of users.
+      tags:
+        - Instant-crud
+      description: Optional extended description in CommonMark or HTML.
+      responses:
+        '200': # status code
+          description: A JSON array of user names
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
