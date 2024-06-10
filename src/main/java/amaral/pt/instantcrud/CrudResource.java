@@ -84,13 +84,14 @@ public class CrudResource {
             String apiKey = request.getCurrent().request().getHeader("x-api-key");
             String updatedResourceId = this.crudService.updateResource(apiKey, dataId, topic, requestBody, origin);
 
-            return (updatedResourceId != null) ?
-                    Response.ok(updatedResourceId).build():
-                    Response.serverError().build();
+            if(updatedResourceId != null) {
+                Response.ok(updatedResourceId).build();
+            }
         } catch (JsonProcessingException e) {
             LOG.error(e.getMessage());
-            return Response.serverError().build();
         }
+
+        return Response.serverError().build();
     }
 
     @DELETE
