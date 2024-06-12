@@ -1,0 +1,52 @@
+FROM oraclelinux:9
+
+ENV LANGUAGE='en_US:en'
+
+USER root
+
+RUN yum install -y java-21-openjdk-devel \
+  && yum install -y maven \
+  && yum clean dbcache \
+  && yum clean all
+
+ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
+
+WORKDIR /build-app
+COPY . .
+RUN mv /build-app/src/main/resources/application.properties.env /build-app/src/main/resources/application.properties
+
+RUN mvn -N wrapper:wrapper
+RUN ./mvnw package
+
+RUN useradd -ms /bin/bash default
+
+WORKDIR /opt/amaral-software/
+
+RUN mkdir -p /opt/amaral-software/instant-crud/ \
+    /opt/amaral-software/instant-crud/lib/ \
+    /opt/amaral-software/instant-crud/app/ \
+    /opt/amaral-software/instant-crud/quarkus/ \
+    /opt/amaral-software/instant-crud/bin/
+RUN chown -R default:default /opt/amaral-software/instant-crud/
+
+RUN ls /build-app/target/quarkus-app/lib/
+
+
+RUN cp -R /build-app/target/quarkus-app/lib/* /opt/amaral-software/instant-crud/lib/ \
+  && cp -R /build-app/target/quarkus-app/*.jar /opt/amaral-software/instant-crud/ \
+  && cp -R /build-app/target/quarkus-app/app/* /opt/amaral-software/instant-crud/app/ \
+  && cp -R /build-app/target/quarkus-app/quarkus/* /opt/amaral-software/instant-crud/quarkus/ \
+  && cp /build-app/bin/instantcrud/start.sh /opt/amaral-software/instant-crud/bin/start.sh
+
+RUN rm -rf /build-app
+
+RUN chmod +x /opt/amaral-software/instant-crud/bin/start.sh \
+ && chown -R default:default /opt/amaral-software/instant-crud/bin/start.sh
+
+EXPOSE 8080
+USER default
+
+ENV JAVA_OPTS_APPEND="-Dquarkus.http.host=0.0.0.0 -Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+ENV JAVA_APP_JAR="/opt/amaral-software/instant-crud/quarkus-run.jar"
+
+ENTRYPOINT ["/opt/amaral-software/instant-crud/bin/start.sh"]
