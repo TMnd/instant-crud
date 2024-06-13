@@ -1,4 +1,4 @@
-MODULES=("./docker/Dockerfile-backend")
+MODULES=("../Dockerfile-instant-crud")
 
 #print_usage
 print_usage() {
@@ -21,17 +21,20 @@ done
 create_image() {
     start=$(date +%s)
 
-    MODULE=$(echo $1 |sed  "s/.*docker\/Dockerfile-//")
+    MODULE=$(echo $1 |sed  "s/.*Dockerfile-//")
+    echo $MODULE
     IMAGE_NAME=${MODULE}
+    echo $IMAGE_NAME
 
     docker build \
-      -f $PWD/docker/Dockerfile-backend \
-      -t tv-channel-service:1.0.0 \
+      -f $PWD/../Dockerfile-instant-crud \
+      -t $IMAGE_NAME:1.0.0 \
       ..
 
     if [ $PUSH = "true" ]; then
-        docker tag tv-channel-service:1.0.0 10.10.0.222:5000/tv-channel-service:1.0.0
-        docker push 10.10.0.222:5000/tv-channel-service:1.0.0
+        echo $IMAGE_NAME
+        docker tag instant-crud:1.0.0 10.10.0.222:5000/$IMAGE_NAME:1.0.0
+        docker push 10.10.0.222:5000/$IMAGE_NAME:1.0.0
     fi
     end=(date +%s)
     echo "$IMAGE_NAME took: $( echo "$end - $start" | bc -l )s"

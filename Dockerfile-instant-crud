@@ -12,7 +12,7 @@ RUN yum install -y java-21-openjdk-devel \
 ENV JAVA_HOME /usr/lib/jvm/java-21-openjdk
 
 WORKDIR /build-app
-COPY . .
+COPY . /build-app
 RUN mv /build-app/src/main/resources/application.properties.env /build-app/src/main/resources/application.properties
 
 RUN mvn -N wrapper:wrapper
