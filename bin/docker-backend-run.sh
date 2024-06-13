@@ -6,4 +6,4 @@ docker run -i --rm \
   -e DB_USER_PASSWORD="localpassword" \
   -e DB_DATABASE="postgres" \
   -e DB_SCHEMA="public" \
-  quarkus/instant-crud bashd
+  instant-crud:1.0.0 bashd
