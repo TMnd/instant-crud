@@ -1,4 +1,7 @@
-MODULES=("../Dockerfile-instant-crud")
+PROJECT_VERSION="1.0.0"
+REMOTE_REPO="10.10.0.222:5000"
+MODULES=()
+MODULES+=("../Dockerfile-instant-crud")
 
 #print_usage
 print_usage() {
@@ -22,19 +25,17 @@ create_image() {
     start=$(date +%s)
 
     MODULE=$(echo $1 |sed  "s/.*Dockerfile-//")
-    echo $MODULE
     IMAGE_NAME=${MODULE}
-    echo $IMAGE_NAME
 
     docker build \
       -f $PWD/../Dockerfile-instant-crud \
-      -t $IMAGE_NAME:1.0.0 \
+      -t $IMAGE_NAME:$PROJECT_VERSION \
       ..
 
     if [ $PUSH = "true" ]; then
         echo $IMAGE_NAME
-        docker tag instant-crud:1.0.0 10.10.0.222:5000/$IMAGE_NAME:1.0.0
-        docker push 10.10.0.222:5000/$IMAGE_NAME:1.0.0
+        docker tag $IMAGE_NAME:$PROJECT_VERSION $REMOTE_REPO/$IMAGE_NAME:$PROJECT_VERSION
+        docker push $REMOTE_REPO/$IMAGE_NAME:$PROJECT_VERSION
     fi
     end=(date +%s)
     echo "$IMAGE_NAME took: $( echo "$end - $start" | bc -l )s"
