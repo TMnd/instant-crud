@@ -7,3 +7,4 @@ resources:
     - pv.yaml
     - pvc.yaml
     - service.yaml
+    - postgres-node-port.yaml

@@ -14,18 +14,11 @@ spec:
                 app: postgres
         spec:
             containers:
-                - name: postgres
-                  image: 'postgres:15'
-                  imagePullPolicy: Always
-                  ports:
-                      - containerPort: 5432
-                  envFrom:
-                      - configMapRef:
-                            name: postgres-secret
-                  volumeMounts:
-                      - mountPath: /var/lib/postgresql/data
-                        name: postgresdata
-            volumes:
-                - name: postgresdata
-                  persistentVolumeClaim:
-                      claimName: postgres-volume-claim
+                -   name: postgres
+                    image: "postgres"
+                    imagePullPolicy: Always
+                    ports:
+                        -   containerPort: 5432
+                    envFrom:
+                        -   configMapRef:
+                                name: postgres-secret

@@ -1,0 +1,21 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: internet-crud-ingress
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        app.kubernetes.io/component: internet-crud-ingress
+        app.kubernetes.io/name: internet-crud
+spec:
+    rules:
+        - host: instant-crud.10.113.140.101.nip.io
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: instant-crud-service
+                            port:
+                                number: 8080

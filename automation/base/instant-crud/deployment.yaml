@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: instant-crud
+    namespace: instant-crud
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: instant-crud
+    template:
+        metadata:
+            labels:
+                app: instant-crud
+        spec:
+            containers:
+                -   name: instant-crud
+                    image: "instant-crud"
+                    imagePullPolicy: Always
+                    ports:
+                        -   containerPort: 8080
+                    volumeMounts:
+                        -   name: instant-crud-configuration
+                            mountPath: /opt/amaral-software/instant-crud/bin/
+                            subPath: instant-crud-configuration
+            volumes:
+                -   name: instant-crud-configuration
+                    configMap:
+                        name: instant-crud-configuration
+                        items:
+                            -   key: configurator.properties
+                                path: configurator.properties
